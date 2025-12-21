@@ -1,0 +1,191 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+  // Adjusted for Next.js 16/Prisma 7 standards
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions Session[]
+  accounts Account[]
+
+  // Organization Relations
+  members     Member[]
+  invitations Invitation[]
+  meetings    Meeting[]
+  actionItems ActionItem[]
+
+  @@map("user")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  logo      String?
+  createdAt DateTime @default(now())
+  metadata  String? // Good for storing plan info or custom AI settings
+
+  members     Member[]
+  invitations Invitation[]
+  meetings    Meeting[]
+
+  slug String
+
+  @@map("organization")
+  @@unique([slug])
+}
+
+model Member {
+  id        String   @id @default(cuid())
+  role      String // "owner", "admin", "member"
+  createdAt DateTime @default(now())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("member")
+  @@index([organizationId])
+  @@index([userId])
+}
+
+model Invitation {
+  id        String   @id @default(cuid())
+  email     String
+  role      String   @default("member") // The role they get when they join
+  status    String   @default("pending") // "pending", "accepted", "rejected"
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  inviterId String
+  inviter   User   @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@map("invitation")
+  @@index([organizationId])
+  @@index([email])
+}
+
+// --- BETTER AUTH CORE MODELS ---
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  activeOrganizationId String?
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model Meeting {
+  id              String         @id @default(cuid())
+  title           String
+  description     String?
+  date            DateTime
+  location        String?
+  audioUrl        String?        // URL from UploadThing
+  duration        Int?           // Duration in seconds
+  
+  // AI Generated Content
+  transcript      Json?          // Array of { speaker: string, text: string, start: number, end: number }
+  summary         String?        @db.Text
+  
+  // Relations
+  organizationId  String
+  organization    Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  creatorId       String
+  creator         User           @relation(fields: [creatorId], references: [id])
+  
+  actionItems     ActionItem[]
+
+  status          MeetingStatus @default(PENDING)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([organizationId])
+  @@map("meeting")
+}
+
+enum MeetingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model ActionItem {
+  id          String    @id @default(cuid())
+  task        String
+  isCompleted Boolean   @default(false)
+  dueDate     DateTime?
+  
+  // The user assigned to this task
+  assigneeId  String?
+  assignee    User?     @relation(fields: [assigneeId], references: [id])
+  
+  meetingId   String
+  meeting     Meeting   @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("actionItem")
+}
