@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useTransition } from "react";
+import React, { Suspense, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -59,6 +59,7 @@ export default function OTPForm({ email }: { email: string }) {
   }
 
   return (
+    <Suspense>
     <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
       <h2 className="text-gray-900 mb-2 text-center text-2xl font-semibold">
         Verify your email
@@ -153,5 +154,6 @@ export default function OTPForm({ email }: { email: string }) {
         </button>
       </div>
     </div>
+    </Suspense>
   );
 }

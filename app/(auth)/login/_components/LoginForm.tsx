@@ -1,7 +1,7 @@
 "use client";
 
 import { loginSchema } from "@/schemas/loginSchema";
-import React, { useTransition } from "react";
+import React, { Suspense, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginSchema } from "@/schemas/loginSchema";
@@ -77,7 +77,7 @@ export default function LoginForm() {
   };
 
   return (
-    <>
+    <Suspense>
       <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
         <h2 className="text-gray-900 mb-2 text-center">Welcome back</h2>
         <p className="text-gray-600 text-center mb-8">
@@ -130,6 +130,6 @@ export default function LoginForm() {
           </form>
         </Form>
       </div>
-    </>
+    </Suspense>
   );
 }
