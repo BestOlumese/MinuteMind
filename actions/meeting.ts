@@ -66,6 +66,7 @@ export async function checkMeetingStatus(meetingId: string) {
 
 export async function createActionItem(meetingId: string, task: string) {
   const session = await protectPage();
+  if (!session.session.activeOrganizationId) throw new Error("Unauthorized");
   const meeting = await prisma.meeting.findFirst({
     where: { id: meetingId, organizationId: session.session.activeOrganizationId },
   });
