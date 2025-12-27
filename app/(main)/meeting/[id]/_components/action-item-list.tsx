@@ -226,7 +226,7 @@ function ActionItemRow({
           <span 
             onClick={() => canEdit && setIsEditing(true)}
             className={cn(
-              "text-sm break-words transition-colors leading-relaxed",
+              "text-sm wrap-break-word transition-colors leading-relaxed",
               canEdit ? "cursor-text" : "cursor-default",
               item.isCompleted ? "text-gray-400 line-through decoration-gray-300" : "text-gray-700"
             )}

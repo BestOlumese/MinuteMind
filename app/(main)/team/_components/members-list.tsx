@@ -33,7 +33,6 @@ interface Member {
     email: string;
     image: string | null;
   };
-  joinedAt: Date; // Keep joinedAt if it's mapped, or change to createdAt
   createdAt: Date;
 }
 
