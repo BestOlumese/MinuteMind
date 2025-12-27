@@ -1,7 +1,7 @@
 "use client";
 
 import { loginSchema } from "@/schemas/loginSchema";
-import React, { Suspense, useTransition } from "react";
+import React, { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginSchema } from "@/schemas/loginSchema";
@@ -29,7 +29,7 @@ export default function LoginForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const searchParams = useSearchParams();
-  
+
   // 1. Grab the URL to return to (defaults to /dashboard)
   const callbackURL = searchParams.get("callbackURL") || "/onboarding";
 
@@ -77,59 +77,72 @@ export default function LoginForm() {
   };
 
   return (
-    <Suspense>
-      <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
-        <h2 className="text-gray-900 mb-2 text-center">Welcome back</h2>
-        <p className="text-gray-600 text-center mb-8">
-          Start turning meetings into insights
-        </p>
+    <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
+      <h2 className="text-gray-900 mb-2 text-center">Welcome back</h2>
+      <p className="text-gray-600 text-center mb-8">
+        Start turning meetings into insights
+      </p>
 
-        {/* OAuth Buttons */}
-        <div className="space-y-3 mb-6">
-          <Button variant="outline" size="lg" className="w-full" onClick={signInWithGoogle}>
-            <FcGoogle />
-            Continue with Google
-          </Button>
+      {/* OAuth Buttons */}
+      <div className="space-y-3 mb-6">
+        <Button
+          variant="outline"
+          size="lg"
+          className="w-full"
+          onClick={signInWithGoogle}
+        >
+          <FcGoogle />
+          Continue with Google
+        </Button>
 
-          <Button variant="outline" size="lg" className="w-full" onClick={signInWithGithub}>
-            <FaGithub />
-            Continue with Github
-          </Button>
-        </div>
-
-        {/* Divider */}
-        <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-500">
-              Or continue with email
-            </span>
-          </div>
-        </div>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="you@company.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <LoaderButton type="submit" isLoading={isPending} className="w-full" icon={<Send />}>
-              Send OTP
-            </LoaderButton>
-          </form>
-        </Form>
+        <Button
+          variant="outline"
+          size="lg"
+          className="w-full"
+          onClick={signInWithGithub}
+        >
+          <FaGithub />
+          Continue with Github
+        </Button>
       </div>
-    </Suspense>
+
+      {/* Divider */}
+      <div className="relative mb-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-4 bg-white text-gray-500">
+            Or continue with email
+          </span>
+        </div>
+      </div>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input placeholder="you@company.com" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <LoaderButton
+            type="submit"
+            isLoading={isPending}
+            className="w-full"
+            icon={<Send />}
+          >
+            Send OTP
+          </LoaderButton>
+        </form>
+      </Form>
+    </div>
   );
 }

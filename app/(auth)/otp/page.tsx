@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import OTPForm from "./_components/OTPForm";
 import { redirect } from "next/navigation";
 
@@ -7,15 +7,16 @@ export default async function OTP({
 }: {
   searchParams: { email: string };
 }) {
-  const {email} = await searchParams;
+  const { email } = await searchParams;
   if (!email) {
     redirect("/login");
   }
-  
 
   return (
     <div className="w-full max-w-md">
-      <OTPForm email={email} />
+      <Suspense>
+        <OTPForm email={email} />
+      </Suspense>
     </div>
   );
 }
