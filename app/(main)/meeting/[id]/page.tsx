@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   ListTodo,
   FileText,
+  Sparkles,
+  AlignLeft,
 } from "lucide-react";
 
 import { protectPage } from "@/lib/auth-utils";
@@ -21,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { ProcessingView } from "./_components/processing-view";
 import { TranscriptView } from "./_components/transcript-view";
+import { ActionItemList } from "./_components/action-item-list";
 
 // Next.js 15/16: params is a Promise
 export default async function MeetingDetailPage(props: {
@@ -44,6 +47,18 @@ export default async function MeetingDetailPage(props: {
     },
   });
 
+  const orgMembers = await prisma.member.findMany({
+    where: { organizationId: session.session.activeOrganizationId },
+    include: { user: true }
+  });
+  
+  // Format members for the client component
+  const members = orgMembers.map(m => ({
+    id: m.userId, // We assign to User ID, not Member ID usually
+    name: m.user.name,
+    image: m.user.image
+  }));
+
   if (!meeting) return notFound();
 
   // STATE 1: MISSING AUDIO (Draft)
@@ -62,7 +77,7 @@ export default async function MeetingDetailPage(props: {
 
   // STATE 2: PROCESSING (Show AI Loader)
   if (meeting.status === "PROCESSING") {
-    return <ProcessingView />;
+    return <ProcessingView meetingId={meeting.id} />;
   }
 
   // STATE 3: FAILED
@@ -129,6 +144,18 @@ export default async function MeetingDetailPage(props: {
               {format(new Date(meeting.date), "h:mm a")}
             </div>
           </div>
+
+          {/* Description (Optional) */}
+          {meeting.description && (
+            <div className="bg-gray-50/50 p-4 rounded-lg border border-gray-100 mt-4 max-w-3xl">
+              <div className="flex gap-2">
+                <AlignLeft className="w-4 h-4 text-gray-400 mt-1 shrink-0" />
+                <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
+                  {meeting.description}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Custom styled audio player */}
@@ -165,7 +192,7 @@ export default async function MeetingDetailPage(props: {
           </Card>
 
           {/* Transcript Card */}
-          <Card className="h-full">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <FileText className="w-5 h-5 text-gray-500" />
@@ -190,58 +217,12 @@ export default async function MeetingDetailPage(props: {
                 </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6">
-              {meeting.actionItems.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 text-sm">
-                  No action items detected.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {meeting.actionItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-start gap-3 p-3 bg-white border rounded-lg shadow-sm"
-                    >
-                      <div className="mt-1">
-                        <CheckCircle2
-                          className={
-                            item.isCompleted
-                              ? "text-green-500 w-5 h-5"
-                              : "text-gray-300 w-5 h-5"
-                          }
-                        />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900 leading-snug">
-                          {item.task}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          {item.assignee ? (
-                            <Badge
-                              variant="secondary"
-                              className="text-[10px] px-1.5 h-5"
-                            >
-                              {item.assignee.name}
-                            </Badge>
-                          ) : (
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] px-1.5 h-5 text-gray-400 border-dashed"
-                            >
-                              Unassigned
-                            </Badge>
-                          )}
-                          {item.dueDate && (
-                            <span className="text-[10px] text-gray-400">
-                              Due {format(new Date(item.dueDate), "MMM d")}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+            <CardContent>
+              <ActionItemList 
+                 meetingId={meeting.id} 
+                 initialItems={meeting.actionItems}
+                 members={members}
+              />
             </CardContent>
           </Card>
         </div>

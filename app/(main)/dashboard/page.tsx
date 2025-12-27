@@ -23,7 +23,7 @@ export default async function Dashboard() {
   const session = await protectPage();
 
   // 2. Fetch Real Data (Parallelized for speed)
-  const [meetings, stats] = await Promise.all([
+  const [meetings, stats, memberCount] = await Promise.all([
     // Fetch last 5 meetings
     prisma.meeting.findMany({
       where: { organizationId: session.session.activeOrganizationId },
@@ -39,6 +39,12 @@ export default async function Dashboard() {
       _count: true,
       _sum: { duration: true },
     }),
+
+    prisma.member.count({
+      where: { 
+        organizationId: session.session.activeOrganizationId 
+      }
+    })
   ]);
 
   // 3. Time Greeting
@@ -117,7 +123,7 @@ export default async function Dashboard() {
           </div>
           <div className="flex items-end gap-2">
             <h3 className="text-3xl font-bold text-gray-900">
-              {((stats._sum.duration || 0) / 3600).toFixed(1)}
+              {((stats._sum.duration || 0) / 3600).toFixed(2)}
             </h3>
             <span className="text-sm text-muted-foreground mb-1">hours</span>
           </div>
@@ -133,8 +139,7 @@ export default async function Dashboard() {
             </div>
           </div>
           <div className="flex items-end gap-2">
-            <h3 className="text-3xl font-bold text-gray-900">--</h3>
-            {/* You can fetch member count via db.member.count(...) if needed */}
+            <h3 className="text-3xl font-bold text-gray-900">{memberCount}</h3>
             <span className="text-sm text-muted-foreground mb-1">
               Active users
             </span>

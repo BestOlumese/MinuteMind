@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { LoaderButton } from "@/components/ui/loaderbutton";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { Send } from "lucide-react";
@@ -28,6 +28,10 @@ import { Button } from "@/components/ui/button";
 export default function LoginForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const searchParams = useSearchParams();
+  
+  // 1. Grab the URL to return to (defaults to /dashboard)
+  const callbackURL = searchParams.get("callbackURL") || "/onboarding";
 
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
@@ -48,7 +52,7 @@ export default function LoginForm() {
         {
           onSuccess: () => {
             toast.success("OTP Sent successfully!! Redirecting...");
-            router.push(`/otp?email=${email}`);
+            router.push(`/otp?email=${email}&callbackURL=${callbackURL}`);
           },
           onError: () => {
             toast.error("Something went wrong. Try again later!!");
@@ -61,14 +65,14 @@ export default function LoginForm() {
   const signInWithGoogle = async () => {
     await authClient.signIn.social({
       provider: "google",
-      callbackURL: "/onboarding", // Better Auth handles the redirect automatically
+      callbackURL: callbackURL, // Better Auth handles the redirect automatically
     });
   };
 
   const signInWithGithub = async () => {
     await authClient.signIn.social({
       provider: "github",
-      callbackURL: "/onboarding", // Better Auth handles the redirect automatically
+      callbackURL: callbackURL, // Better Auth handles the redirect automatically
     });
   };
 

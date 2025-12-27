@@ -3,7 +3,7 @@
 import React, { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { Check } from "lucide-react";
@@ -37,6 +37,10 @@ export default function OTPForm({ email }: { email: string }) {
   });
 
   async function onSubmit(values: OtpSchema) {
+    const searchParams = useSearchParams();
+    
+    // 1. Grab the URL to return to (defaults to /dashboard)
+    const callbackURL = searchParams.get("callbackURL") || "/dashboard";
     startTransition(async () => {
       const { data, error } = await authClient.signIn.emailOtp({
         email: email,
@@ -50,7 +54,7 @@ export default function OTPForm({ email }: { email: string }) {
 
       toast.success("Verified successfully!");
       // This will trigger your proxy.ts logic to check for Organization status
-      router.push("/onboarding");
+      router.push(callbackURL);
     });
   }
 

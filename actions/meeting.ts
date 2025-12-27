@@ -54,3 +54,39 @@ export async function deleteMeetingAction(meetingId: string) {
     return { success: false, message: "Failed to delete meeting." };
   }
 }
+
+export async function checkMeetingStatus(meetingId: string) {
+  const meeting = await prisma.meeting.findUnique({
+    where: { id: meetingId },
+    select: { status: true },
+  });
+
+  return meeting?.status || "PENDING";
+}
+
+export async function createActionItem(meetingId: string, task: string) {
+  const session = await protectPage();
+  const meeting = await prisma.meeting.findFirst({
+    where: { id: meetingId, organizationId: session.session.activeOrganizationId },
+  });
+  if (!meeting) throw new Error("Unauthorized");
+
+  const newItem = await prisma.actionItem.create({
+    data: { meetingId, task },
+  });
+  
+  revalidatePath(`/meeting/${meetingId}`);
+  return newItem; // Return the full object
+}
+
+export async function updateActionItem(id: string, data: any) {
+  await protectPage();
+  await prisma.actionItem.update({ where: { id }, data });
+  revalidatePath(`/meeting/${id}`); 
+}
+
+export async function deleteActionItem(id: string) {
+  await protectPage();
+  await prisma.actionItem.delete({ where: { id } });
+  revalidatePath(`/meeting/${id}`);
+}
